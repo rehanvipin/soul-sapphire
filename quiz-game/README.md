@@ -5,5 +5,6 @@ Involves: strings, channels, goroutines, flags, CSVs and time.
 Check [Description](Description.md) for details.
 
 ## Usage:
-* `go build` and `./main -h`
+* `go build` and `./qui-game -h`
+* Or just use `go run main.go -h`
 * Add your own CSV file with questions and expected answers.

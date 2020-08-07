@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	urlshort "urlshortner"
@@ -9,6 +11,9 @@ import (
 
 func main() {
 	mux := defaultMux()
+
+	yamlFile := flag.String("yml", "", "Specify yml file to use for mapping")
+	flag.Parse()
 
 	// Build the MapHandler using the mux as the fallback
 	pathsToUrls := map[string]string{
@@ -19,12 +24,23 @@ func main() {
 
 	// Build the YAMLHandler using the mapHandler as the
 	// fallback
-	yaml := `
+	var yaml string
+	if *yamlFile == "" {
+		yaml = `
 - path: /urlshort
   url: https://github.com/gophercises/urlshort
 - path: /urlshort-final
   url: https://github.com/gophercises/urlshort/tree/solution
 `
+	} else {
+		dat, err := ioutil.ReadFile(*yamlFile)
+		if err != nil {
+			fmt.Println("Could not read file")
+			return
+		}
+		yaml = string(dat)
+	}
+
 	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
 	if err != nil {
 		panic(err)

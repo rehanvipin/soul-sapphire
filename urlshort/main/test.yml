@@ -1,0 +1,4 @@
+- path: /google
+  url: https://google.com
+- path: /yahoo
+  url: https://yahoo.in

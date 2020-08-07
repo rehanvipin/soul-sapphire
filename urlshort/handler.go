@@ -2,6 +2,8 @@ package urlshort
 
 import (
 	"net/http"
+
+	"gopkg.in/yaml.v2"
 )
 
 type mapper struct {
@@ -36,6 +38,10 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 	return http.HandlerFunc(movement.redirect)
 }
 
+type wicker struct {
+	Path, URL string
+}
+
 // YAMLHandler will parse the provided YAML and then return
 // an http.HandlerFunc (which also implements http.Handler)
 // that will attempt to map any paths to their corresponding
@@ -53,6 +59,15 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	// TODO: Implement this...
-	return fallback.ServeHTTP, nil
+	var f = []wicker{}
+	err := yaml.Unmarshal(yml, &f)
+	if err != nil {
+		return nil, err
+	}
+	var pathToUrls = make(map[string]string)
+	for _, mapped := range f {
+		pathToUrls[mapped.Path] = mapped.URL
+	}
+
+	return MapHandler(pathToUrls, fallback), nil
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -50,16 +51,15 @@ func homePage(w http.ResponseWriter, req *http.Request) {
 func storyReader(available map[string]storyArc, temple string) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		path := strings.Split(req.URL.Path, "/")
-		if path[1] == "" {
+		if path[1] == "" || path[1] == "/" {
 			path[1] = "intro"
 		}
 		if arc, ok := available[path[1]]; ok {
 			tmpl := template.Must(template.ParseFiles(temple))
 			tmpl.Execute(w, arc)
-		} else if path[1] == "" {
-			fmt.Fprintf(w, "%s\n", "<h1>Welcome to the gopher stories<h1>")
 		} else {
-			fmt.Fprintf(w, "%s %v\n", "Could not find that story", req.URL.Path)
+			http.Error(w, "404 - Could not find that story.", http.StatusNotFound)
+			log.Printf("%s %v\n", "Story not found", req.URL.Path)
 		}
 	}
 }

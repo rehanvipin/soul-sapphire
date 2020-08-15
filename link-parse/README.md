@@ -2,9 +2,16 @@
 
 ## Parse HTML links from a document
 Todo:  
-- [ ] Parse links
-- [ ] Handle edge cases
-- [ ] Get the webpage with CLI
+- [x] Parse links
+- [x] Handle edge cases
+- [x] Get the webpage with CLI
+
+## Usage
+1. Clone the repo and go to link-parse/
+2. Run `go run .`, Options are
+    * `html [html-file-name]` e.g. ex1.html to provide your own file
+    * `url [abosolute-url]` e.g. https://www.google.com to get it from the web
+    * `help` to get the help menu
 
 ## Notes
 The HTML link parser exercise from [Gophercises](https://gophercises.com)  

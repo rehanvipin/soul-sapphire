@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/boltdb/bolt"
 	"github.com/spf13/cobra"
@@ -17,29 +18,36 @@ var addCmd = &cobra.Command{
 	Short: "Add task to the list",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Added task to the list:", args)
-		connect()
 		// Connect to db and add task to list
+		addTask(args[0])
+		// Confirmation
+		fmt.Printf("Added task - %v - to the list\n", args[0])
 	},
 }
 
-func connect() {
-	db, err := bolt.Open("list.db", 0600, nil)
+func addTask(task string) {
+	db, err := bolt.Open(dbName, 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	key := []byte("0")
-	value := []byte("Batman")
+	value := []byte(task)
+	var keyb []byte
 
 	err = db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte(bucketName))
 		if err != nil {
 			return err
 		}
+		key, kerr := bucket.NextSequence()
+		if kerr != nil {
+			return kerr
+		}
 
-		err = bucket.Put(key, value)
+		keyb = []byte(strconv.Itoa(int(key)))
+
+		err = bucket.Put(keyb, value)
 		if err != nil {
 			return err
 		}
@@ -49,17 +57,19 @@ func connect() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Retrieve data
-	err = db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(bucketName))
-		if bucket == nil {
-			return fmt.Errorf("could not find bucket %v", bucket)
-		}
-
-		val := bucket.Get(key)
-		fmt.Println(string(val))
-
-		return nil
-	})
 }
+
+// func check() {
+// 	// Retrieve data
+// 	err = db.View(func(tx *bolt.Tx) error {
+// 		bucket := tx.Bucket([]byte(bucketName))
+// 		if bucket == nil {
+// 			return fmt.Errorf("could not find bucket %v", bucket)
+// 		}
+
+// 		val := bucket.Get(keyb)
+// 		fmt.Println(string(val))
+
+// 		return nil
+// 	})
+// }

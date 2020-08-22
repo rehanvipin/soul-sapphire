@@ -23,7 +23,7 @@ var listCmd = &cobra.Command{
 }
 
 func enumerate() {
-	db, err := bolt.Open("list.db", 0600, nil)
+	db, err := bolt.Open(dbName, 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func enumerate() {
 		b := tx.Bucket([]byte(bucketName))
 
 		b.ForEach(func(k, v []byte) error {
-			fmt.Printf("k:%s & v:%s\n", k, v)
+			fmt.Printf("%s - %s\n", k, v)
 			return nil
 		})
 		return nil

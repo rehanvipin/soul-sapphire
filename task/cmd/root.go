@@ -8,6 +8,7 @@ import (
 )
 
 const bucketName = "bezos"
+const dbName = "list.db"
 
 var rootCmd = &cobra.Command{
 	Use:   "task",

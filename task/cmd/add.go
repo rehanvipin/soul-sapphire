@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/boltdb/bolt"
 	"github.com/spf13/cobra"
@@ -16,12 +17,12 @@ func init() {
 var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add task to the list",
-	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Connect to db and add task to list
-		addTask(args[0])
+		task := strings.Join(args, " ")
+		addTask(task)
 		// Confirmation
-		fmt.Printf("Added task - %v - to the list\n", args[0])
+		fmt.Printf("Added task - %v - to the list\n", task)
 	},
 }
 

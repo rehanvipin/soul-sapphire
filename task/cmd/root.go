@@ -3,12 +3,23 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path"
 
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )
 
 const bucketName = "bezos"
-const dbName = "list.db"
+
+var dbName string
+
+func init() {
+	home, herr := homedir.Dir()
+	if herr != nil {
+		fmt.Println("Could not get home directory")
+	}
+	dbName = path.Join(home, "list.db")
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "task",

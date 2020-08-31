@@ -6,6 +6,11 @@ import (
 )
 
 func main() {
-	var deck = deck.New()
+	deck, err := deck.New(
+		deck.Sort(deck.DefaultCompare),
+	)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(deck)
 }

@@ -1,10 +1,13 @@
 package deck
 
 import (
+	"math/rand"
 	"sort"
+	"time"
 )
 
 // Card is the primitive type of the deck
+// Joker is represented as {0, "joker"}
 type Card struct {
 	number rune
 	suit   string
@@ -35,6 +38,105 @@ func DefaultCompare(deck Deck, first, second int) bool {
 	var suitpoints = map[string]int{"spade": 1, "diamond": 2, "club": 3, "heart": 4}
 	return suitpoints[deck[first].suit] > suitpoints[deck[second].suit] &&
 		numberpoints[deck[first].number] > numberpoints[deck[second].number]
+}
+
+// Shuffle shuffles the deck
+func Shuffle() Options {
+	return func(deck *Deck) (*Deck, error) {
+		rand.Seed(time.Now().UnixNano())
+		tmp := *deck
+		rand.Shuffle(len(*deck), func(i, j int) {
+			tmp[i], tmp[j] = tmp[j], tmp[i]
+		})
+		return &tmp, nil
+	}
+}
+
+// JokerAdd adds n jokers to the deck
+func JokerAdd(n int) Options {
+	return func(deck *Deck) (*Deck, error) {
+		tmp := *deck
+		for i := 0; i < n; i++ {
+			tmp = append(tmp, Card{0, "joker"})
+		}
+		return &tmp, nil
+	}
+}
+
+func del(i int, deck Deck) Deck {
+	copy(deck[i:], deck[i+1:])
+	deck[len(deck)-1] = Card{}
+	deck = deck[:len(deck)-1]
+	return deck
+}
+
+// Remove removes a set of cards from the deck
+func Remove(nums []rune, suits []string, cards []Card) Options {
+	return func(deck *Deck) (*Deck, error) {
+		if nums != nil {
+			for _, num := range nums {
+				var index = 0
+				for index > -1 {
+					index = -1
+					for i := range *deck {
+						if (*deck)[i].number == num {
+							index = i
+							break
+						}
+					}
+					if index > -1 {
+						*deck = del(index, *deck)
+					}
+				}
+			}
+		}
+		if suits != nil {
+			for _, suit := range suits {
+				var index = 0
+				for index > -1 {
+					index = -1
+					for i := range *deck {
+						if (*deck)[i].suit == suit {
+							index = i
+							break
+						}
+					}
+					if index > -1 {
+						*deck = del(index, *deck)
+					}
+				}
+			}
+		}
+		if cards != nil {
+			for _, card := range cards {
+				var index = 0
+				for index > -1 {
+					index = -1
+					for i := range *deck {
+						if (*deck)[i] == card {
+							index = i
+							break
+						}
+					}
+					if index > -1 {
+						*deck = del(index, *deck)
+					}
+				}
+			}
+		}
+		return deck, nil
+	}
+}
+
+// Duplicate duplicates the deck n times
+func Duplicate(n int) Options {
+	return func(deck *Deck) (*Deck, error) {
+		tmp := *deck
+		for i := 0; i < n-1; i++ {
+			tmp = append(tmp, tmp...)
+		}
+		return &tmp, nil
+	}
 }
 
 // New creates a new deck of cards and returns them

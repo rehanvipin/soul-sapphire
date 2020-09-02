@@ -40,7 +40,7 @@ func DefaultCompare(deck Deck, first, second int) bool {
 		numberpoints[deck[first].number] > numberpoints[deck[second].number]
 }
 
-// Shuffle shuffles the deck
+// Shuffle randomly shuffles the deck
 func Shuffle() Options {
 	return func(deck *Deck) (*Deck, error) {
 		rand.Seed(time.Now().UnixNano())
@@ -71,58 +71,42 @@ func del(i int, deck Deck) Deck {
 }
 
 // Remove removes a set of cards from the deck
-func Remove(nums []rune, suits []string, cards []Card) Options {
+func Remove(matches ...interface{}) Options {
 	return func(deck *Deck) (*Deck, error) {
-		if nums != nil {
-			for _, num := range nums {
-				var index = 0
-				for index > -1 {
-					index = -1
-					for i := range *deck {
-						if (*deck)[i].number == num {
-							index = i
-							break
-						}
+		for _, match := range matches {
+			slow := 0
+			for i := range *deck {
+				switch v := match.(type) {
+				case rune:
+					if (*deck)[i].number != match {
+						(*deck)[slow] = (*deck)[i]
+						slow++
 					}
-					if index > -1 {
-						*deck = del(index, *deck)
+				case string:
+					if (*deck)[i].suit != match {
+						(*deck)[slow] = (*deck)[i]
+						slow++
 					}
+				case int:
+					if match != 0 {
+						slow++
+						break
+					}
+					if (*deck)[i].number != rune(0) {
+						(*deck)[slow] = (*deck)[i]
+						slow++
+					}
+				default:
+					// Sneak tricks
+					_ = v
+					slow++
 				}
 			}
-		}
-		if suits != nil {
-			for _, suit := range suits {
-				var index = 0
-				for index > -1 {
-					index = -1
-					for i := range *deck {
-						if (*deck)[i].suit == suit {
-							index = i
-							break
-						}
-					}
-					if index > -1 {
-						*deck = del(index, *deck)
-					}
-				}
+			// fix mem leaks
+			for i := slow; i < len(*deck); i++ {
+				(*deck)[i] = Card{}
 			}
-		}
-		if cards != nil {
-			for _, card := range cards {
-				var index = 0
-				for index > -1 {
-					index = -1
-					for i := range *deck {
-						if (*deck)[i] == card {
-							index = i
-							break
-						}
-					}
-					if index > -1 {
-						*deck = del(index, *deck)
-					}
-				}
-			}
+			(*deck) = (*deck)[:slow]
 		}
 		return deck, nil
 	}

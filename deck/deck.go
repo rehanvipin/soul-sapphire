@@ -9,8 +9,8 @@ import (
 // Card is the primitive type of the deck
 // Joker is represented as {0, "joker"}
 type Card struct {
-	number rune
-	suit   string
+	Number rune
+	Suit   string
 }
 
 // Deck is the type that is visible to the user
@@ -36,8 +36,8 @@ func DefaultCompare(deck Deck, first, second int) bool {
 	var numberpoints = map[rune]int{'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
 		'7': 7, '8': 8, '9': 9, 'J': 10, 'Q': 11, 'K': 12}
 	var suitpoints = map[string]int{"spade": 1, "diamond": 2, "club": 3, "heart": 4}
-	return suitpoints[deck[first].suit] > suitpoints[deck[second].suit] &&
-		numberpoints[deck[first].number] > numberpoints[deck[second].number]
+	return suitpoints[deck[first].Suit] > suitpoints[deck[second].Suit] &&
+		numberpoints[deck[first].Number] > numberpoints[deck[second].Number]
 }
 
 // Shuffle randomly shuffles the deck
@@ -78,12 +78,12 @@ func Remove(matches ...interface{}) Options {
 			for i := range *deck {
 				switch v := match.(type) {
 				case rune:
-					if (*deck)[i].number != match {
+					if (*deck)[i].Number != match {
 						(*deck)[slow] = (*deck)[i]
 						slow++
 					}
 				case string:
-					if (*deck)[i].suit != match {
+					if (*deck)[i].Suit != match {
 						(*deck)[slow] = (*deck)[i]
 						slow++
 					}
@@ -92,7 +92,7 @@ func Remove(matches ...interface{}) Options {
 						slow++
 						break
 					}
-					if (*deck)[i].number != rune(0) {
+					if (*deck)[i].Number != rune(0) {
 						(*deck)[slow] = (*deck)[i]
 						slow++
 					}
@@ -131,8 +131,8 @@ func New(opts ...Options) (Deck, error) {
 	for _, suit := range suits {
 		for _, number := range numbers {
 			deck = append(deck, Card{
-				number: number,
-				suit:   suit,
+				Number: number,
+				Suit:   suit,
 			})
 		}
 	}

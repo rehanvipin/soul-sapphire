@@ -27,6 +27,28 @@ func main() {
 		dealerHand = append(dealerHand, card)
 		pack = pack[2:]
 	}
-	fmt.Println(dealerHand)
-	fmt.Println(playerHand)
+	fmt.Println("Dealer has", dealerHand)
+	fmt.Println("Player has", playerHand)
+
+	// Points table
+	points := map[rune]int{
+		'J': 10,
+		'Q': 10,
+		'K': 10,
+	}
+	for i := 2; i <= 10; i++ {
+		points[rune('0'+i)] = i
+	}
+
+	// Calculate points
+	var playerScore, dealerScore = 0, 0
+	for i := range playerHand {
+		playerScore += points[playerHand[i].Number]
+	}
+	for i := range dealerHand {
+		dealerScore += points[dealerHand[i].Number]
+	}
+
+	fmt.Printf("Player: %2d\n", playerScore)
+	fmt.Printf("Dealer: %2d\n", dealerScore)
 }

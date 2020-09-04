@@ -1,4 +1,5 @@
 # Blackjack (Single player & Multiplayer)
+Done as a part of [Gophercises](https://gophercises.com)
 
 ## Details
 * Plays with a subset of the actual rules.

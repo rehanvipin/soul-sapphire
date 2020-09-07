@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 )
 
 var (
@@ -21,5 +22,18 @@ func init() {
 }
 
 func main() {
-	fmt.Println(creds)
+	resp, err := http.Get("https://api.twitter.com/1.1/statuses/show.json?id=210462857140252672")
+	check(err)
+	defer resp.Body.Close()
+
+	fmt.Println(resp.Status)
+	body, err := ioutil.ReadAll(resp.Body)
+	check(err)
+	fmt.Println(string(body))
+}
+
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

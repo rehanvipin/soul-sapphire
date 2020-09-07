@@ -1,10 +1,14 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 var (
@@ -22,14 +26,42 @@ func init() {
 }
 
 func main() {
-	resp, err := http.Get("https://api.twitter.com/1.1/statuses/show.json?id=210462857140252672")
+	accessToken, err := getAccessToken()
+	check(err)
+
+	fmt.Println(accessToken)
+}
+
+func getAccessToken() (string, error) {
+	client := &http.Client{}
+	reqBody := strings.NewReader("grant_type=client_credentials")
+	req, _ := http.NewRequest("POST", "https://api.twitter.com/oauth2/token", reqBody)
+
+	var bearerToken = getBearerToken()
+	req.Header.Set("Authorization", "Basic "+bearerToken)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8")
+
+	resp, err := client.Do(req)
 	check(err)
 	defer resp.Body.Close()
 
-	fmt.Println(resp.Status)
-	body, err := ioutil.ReadAll(resp.Body)
+	data, err := ioutil.ReadAll(resp.Body)
 	check(err)
-	fmt.Println(string(body))
+	var payload map[string]string
+	err = json.Unmarshal(data, &payload)
+	check(err)
+
+	if payload["token_type"] != "bearer" {
+		return "", errors.New("Invalid Auth Token")
+	}
+	return payload["access_token"], nil
+}
+
+func getBearerToken() string {
+	consumerKey := url.QueryEscape(creds["API_KEY"])
+	consumerSecret := url.QueryEscape(creds["API_SECRET"])
+	bearer := consumerKey + ":" + consumerSecret
+	return base64.StdEncoding.EncodeToString([]byte(bearer))
 }
 
 func check(err error) {

@@ -15,8 +15,8 @@ Conduct retweet contests from the command line.
 2. Run `go run .` to start the application.
 
 ## ToDo
-- [ ] Use access token to get a tweet
-- [ ] Get retweeters of specific tweet
+- [x] Use access token to get a tweet
+- [x] Get retweeters of specific tweet
 - [ ] Update retweeters list to file
 - [ ] Choose random retweeter
 - [ ] Document Code

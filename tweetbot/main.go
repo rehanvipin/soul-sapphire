@@ -26,17 +26,49 @@ func init() {
 	}
 }
 
+// TwitterUser is the type stored in the localstore
+type TwitterUser struct {
+	UserID, Name, ScreenName string
+}
+
+// Represent Twitter user in a single line
+func (twu TwitterUser) String() string {
+	return fmt.Sprintf("%v @ %v - %v", twu.Name, twu.ScreenName, twu.UserID)
+}
+
 func main() {
 	accessToken, err := getAccessToken()
 	check(err)
 
+	var tweetID = "1303359966741508096"
+	retweeters := getRetweeters(tweetID, accessToken)
+	RTUsers := getUsers(retweeters, accessToken)
+
+	for i := range RTUsers {
+		fmt.Println(RTUsers[i])
+	}
+}
+
+// Use user-ids to get TwitterUser objects
+func getUsers(userIDs []string, accessToken string) []TwitterUser {
 	client := &http.Client{}
-	id := "1303359966741508096"
-	url := fmt.Sprintf("https://api.twitter.com/1.1/statuses/retweets/%s.json", id)
+	url := fmt.Sprintf("https://api.twitter.com/1.1/users/lookup.json")
 	req, _ := http.NewRequest("GET", url, nil)
 
+	// fmt.Println(userIDs)
+
+	userIDlist := ""
+	for i := range userIDs {
+		if i > 0 {
+			userIDlist += ","
+		}
+		userIDlist += userIDs[i]
+	}
+
+	// fmt.Println(userIDlist)
+
 	q := req.URL.Query()
-	q.Add("trim_user", "true")
+	q.Add("user_id", userIDlist)
 	req.URL.RawQuery = q.Encode()
 
 	req.Header.Set("Authorization", "Bearer "+accessToken)
@@ -47,20 +79,28 @@ func main() {
 	data, err := ioutil.ReadAll(resp.Body)
 	check(err)
 
+	// fmt.Println(string(data))
+
 	var payload []map[string]interface{}
 	err = json.Unmarshal(data, &payload)
 	check(err)
 
-	var users []string
+	var users []TwitterUser
 
 	for i := range payload {
 		user := payload[i]
-		fmt.Println(user["id_str"])
-		users = append(users, user["id_str"].(string))
+		// fmt.Println(user["id_str"], user["name"], user["screen_name"])
+		users = append(users, TwitterUser{
+			UserID:     user["id_str"].(string),
+			Name:       user["name"].(string),
+			ScreenName: user["screen_name"].(string),
+		})
 	}
 
+	return users
 }
 
+// Return array of user-ids of all retweeters
 func getRetweeters(id, accessToken string) []string {
 	client := &http.Client{}
 
@@ -85,15 +125,22 @@ func getRetweeters(id, accessToken string) []string {
 
 	var users []string
 
+	// Debugging
+	// ck := payload[0]
+	// for k := range ck {
+	// 	fmt.Println(k)
+	// }
+	// fmt.Println(ck["user"])
+
 	for i := range payload {
 		user := payload[i]
-		users = append(users, user["id_str"].(string))
+		users = append(users, user["user"].(map[string]interface{})["id_str"].(string))
 	}
 
 	return users
 }
 
-// Returns all the properties of a tweet with a given id
+// Return all the properties of a tweet with a given id
 func getTweet(id, accessToken string) map[string]interface{} {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "https://api.twitter.com/1.1/statuses/show.json", nil)

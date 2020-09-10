@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -28,7 +29,9 @@ func init() {
 
 // TwitterUser is the type stored in the localstore
 type TwitterUser struct {
-	UserID, Name, ScreenName string
+	UserID     string `json:"user_id"`
+	Name       string `json:"name"`
+	ScreenName string `json:"screen_name"`
 }
 
 // Represent Twitter user in a single line
@@ -42,11 +45,47 @@ func main() {
 
 	var tweetID = "1303359966741508096"
 	retweeters := getRetweeters(tweetID, accessToken)
-	RTUsers := getUsers(retweeters, accessToken)
+	saveHistory(retweeters, "tweeters.json")
+	// RTUsers := getUsers(retweeters, accessToken)
 
-	for i := range RTUsers {
-		fmt.Println(RTUsers[i])
+	// for i := range RTUsers {
+	// 	fmt.Println(RTUsers[i])
+	// }
+}
+
+// Save new retweeter ids to file along with old ones
+func saveHistory(retweeters []string, fileName string) {
+
+	_, err := os.Stat(fileName)
+	if os.IsNotExist(err) {
+		f, err := os.Create(fileName)
+		check(err)
+		f.Close()
 	}
+
+	data, err := ioutil.ReadFile(fileName)
+	check(err)
+	var history []string
+	json.Unmarshal(data, &history)
+
+	// filter out repeated entrires
+	// done by json
+	seen := map[string]bool{}
+	for i := range history {
+		seen[history[i]] = true
+	}
+
+	for i := range retweeters {
+		if _, ok := seen[retweeters[i]]; !ok {
+			history = append(history, retweeters[i])
+			seen[retweeters[i]] = true
+		}
+	}
+
+	f, err := os.Create(fileName)
+	check(err)
+	rtB, _ := json.Marshal(history)
+	f.Write(rtB)
 }
 
 // Use user-ids to get TwitterUser objects
@@ -104,11 +143,14 @@ func getUsers(userIDs []string, accessToken string) []TwitterUser {
 func getRetweeters(id, accessToken string) []string {
 	client := &http.Client{}
 
-	url := fmt.Sprintf("https://api.twitter.com/1.1/statuses/retweets/%s.json", id)
+	url := fmt.Sprintf("https://api.twitter.com/1.1/statuses/retweeters/ids.json")
 	req, _ := http.NewRequest("GET", url, nil)
 
 	q := req.URL.Query()
+	q.Add("id", id)
 	q.Add("trim_user", "true")
+	q.Add("count", "100")
+	q.Add("stringify_ids", "true")
 	req.URL.RawQuery = q.Encode()
 
 	req.Header.Set("Authorization", "Bearer "+accessToken)
@@ -119,11 +161,20 @@ func getRetweeters(id, accessToken string) []string {
 	data, err := ioutil.ReadAll(resp.Body)
 	check(err)
 
-	var payload []map[string]interface{}
+	var payload map[string]interface{}
 	err = json.Unmarshal(data, &payload)
 	check(err)
 
 	var users []string
+
+	// for k, v := range payload {
+	// 	fmt.Println(k, v)
+	// }
+
+	for i := range payload["ids"].([]interface{}) {
+		user := payload["ids"].([]interface{})[i]
+		users = append(users, user.(string))
+	}
 
 	// Debugging
 	// ck := payload[0]
@@ -132,10 +183,10 @@ func getRetweeters(id, accessToken string) []string {
 	// }
 	// fmt.Println(ck["user"])
 
-	for i := range payload {
-		user := payload[i]
-		users = append(users, user["user"].(map[string]interface{})["id_str"].(string))
-	}
+	// for i := range payload {
+	// 	user := payload[i]
+	// 	users = append(users, user["user"].(map[string]interface{})["id_str"].(string))
+	// }
 
 	return users
 }

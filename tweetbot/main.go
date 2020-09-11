@@ -6,10 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -25,6 +28,7 @@ func init() {
 	if err := json.Unmarshal(data, &creds); err != nil {
 		panic(err)
 	}
+	rand.Seed(time.Now().UnixNano())
 }
 
 // TwitterUser is the type stored in the localstore
@@ -40,17 +44,115 @@ func (twu TwitterUser) String() string {
 }
 
 func main() {
+
+	if len(os.Args) < 2 {
+		fmt.Println("Incorrect usage. Specify fetch or choose")
+		fmt.Println("tweetbot fetch <tweet-id>")
+		fmt.Println("tweetbot choose <tweet-id> <no-of-users-to-pick>")
+		return
+	}
+
+	switch os.Args[1] {
+	case "fetch":
+		fetch()
+	case "choose":
+		choose()
+	default:
+		fmt.Printf("Invalid choice %v, Only fetch or choose", os.Args[1])
+	}
+}
+
+func fetch() {
+	if len(os.Args) < 3 {
+		fmt.Println("Need tweet-id")
+		return
+	}
+	var tweetID = os.Args[2]
+	// Fetch once
 	accessToken, err := getAccessToken()
 	check(err)
-
-	var tweetID = "1303359966741508096"
 	retweeters := getRetweeters(tweetID, accessToken)
-	saveHistory(retweeters, "tweeters.json")
-	// RTUsers := getUsers(retweeters, accessToken)
+	var fileName = fmt.Sprintf("tweeters-%s.json", tweetID)
+	saveHistory(retweeters, fileName)
 
-	// for i := range RTUsers {
-	// 	fmt.Println(RTUsers[i])
-	// }
+	// List them all by usernames
+	fmt.Println("Retweeters -")
+	tweeters := loadHistory(fileName)
+	var mlt, n = 100, len(tweeters)
+
+	for i := 0; i*mlt < n; i++ {
+		var r = mlt * (i + 1)
+		if r > n {
+			r = n
+		}
+		chunk := tweeters[mlt*i : r]
+		users := getUsers(chunk, accessToken)
+		for j := range users {
+			fmt.Printf("%s @ %s\n", users[j].Name, users[j].ScreenName)
+		}
+	}
+}
+
+func choose() {
+	if len(os.Args) < 3 {
+		fmt.Println("Need tweet-id")
+		return
+	}
+	var picks = 1
+	if len(os.Args) < 4 {
+		fmt.Println("Did not specify how many people to pick. Default - 1")
+	} else {
+		var err error
+		picks, err = strconv.Atoi(os.Args[3])
+		check(err)
+	}
+	var tweetID = os.Args[2]
+	// Fetch once
+	accessToken, err := getAccessToken()
+	check(err)
+	retweeters := getRetweeters(tweetID, accessToken)
+	var fileName = fmt.Sprintf("tweeters-%s.json", tweetID)
+	saveHistory(retweeters, fileName)
+
+	tweeters := loadHistory(fileName)
+	n := len(tweeters)
+	if n <= 0 {
+		return
+	}
+	if picks > n {
+		picks = n
+	}
+	indexes := []int{}
+	var set = map[int]bool{}
+	for picks > 0 {
+		ix := rand.Intn(n)
+		if _, ok := set[ix]; ok {
+			continue
+		}
+		indexes = append(indexes, ix)
+		picks--
+	}
+
+	var winners []string
+	for _, e := range indexes {
+		winners = append(winners, tweeters[e])
+	}
+
+	// Add paging support
+	winUsers := getUsers(winners, accessToken)
+	fmt.Println("Winners are -")
+	for i := range winUsers {
+		fmt.Printf("%s @ %s\n", winUsers[i].Name, winUsers[i].ScreenName)
+	}
+}
+
+// Loads all retweeters ids stored in file
+func loadHistory(fileName string) []string {
+	data, err := ioutil.ReadFile(fileName)
+	check(err)
+	var history []string
+	json.Unmarshal(data, &history)
+	return history
 }
 
 // Save new retweeter ids to file along with old ones

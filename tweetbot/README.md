@@ -17,6 +17,6 @@ Conduct retweet contests from the command line.
 ## ToDo
 - [x] Use access token to get a tweet
 - [x] Get retweeters of specific tweet
-- [ ] Update retweeters list to file
-- [ ] Choose random retweeter
+- [x] Update retweeters list to file
+- [x] Choose random retweeter
 - [ ] Document Code

@@ -54,20 +54,31 @@ func main() {
 
 	switch os.Args[1] {
 	case "fetch":
-		fetch()
+		if len(os.Args) < 3 {
+			fmt.Println("Need tweet-id")
+			return
+		}
+		fetch(os.Args[2])
 	case "choose":
-		choose()
+		if len(os.Args) < 3 {
+			fmt.Println("Need tweet-id")
+			return
+		}
+		var picks = 1
+		if len(os.Args) < 4 {
+			fmt.Println("Did not specify how many people to pick. Default - 1")
+		} else {
+			var err error
+			picks, err = strconv.Atoi(os.Args[3])
+			check(err)
+		}
+		choose(os.Args[2], picks)
 	default:
 		fmt.Printf("Invalid choice %v, Only fetch or choose", os.Args[1])
 	}
 }
 
-func fetch() {
-	if len(os.Args) < 3 {
-		fmt.Println("Need tweet-id")
-		return
-	}
-	var tweetID = os.Args[2]
+func fetch(tweetID string) {
 	// Fetch once
 	accessToken, err := getAccessToken()
 	check(err)
@@ -93,20 +104,7 @@ func fetch() {
 	}
 }
 
-func choose() {
-	if len(os.Args) < 3 {
-		fmt.Println("Need tweet-id")
-		return
-	}
-	var picks = 1
-	if len(os.Args) < 4 {
-		fmt.Println("Did not specify how many people to pick. Default - 1")
-	} else {
-		var err error
-		picks, err = strconv.Atoi(os.Args[3])
-		check(err)
-	}
-	var tweetID = os.Args[2]
+func choose(tweetID string, picks int) {
 	// Fetch once
 	accessToken, err := getAccessToken()
 	check(err)

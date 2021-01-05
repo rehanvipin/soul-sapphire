@@ -46,9 +46,10 @@ func (twu TwitterUser) String() string {
 func main() {
 
 	if len(os.Args) < 2 {
-		fmt.Println("Incorrect usage. Specify fetch or choose")
-		fmt.Println("tweetbot fetch <tweet-id>")
-		fmt.Println("tweetbot choose <tweet-id> <no-of-users-to-pick>")
+		fmt.Println(`Retweet contests from the terminal✨
+	Usage:
+	tweetbot fetch <tweet-id>
+	tweetbot choose <tweet-id> <no-of-users-to-pick>`)
 		return
 	}
 

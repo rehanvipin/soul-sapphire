@@ -2,8 +2,7 @@
 Done during the 100DaysOfCode challenge.  
 
 ### Note
-To whomsoever it may concern,    
-Sticking to the true sense of the challenge, gophercises was used only to obtain problem statements(Description.md), no tutorials/solutions.  
+The project idea is taken from gophercises wherever mentioned. All implementation is my own.  
 
 Each exercise is under it's own directory with explanation.  
 Check out [gophercises](https://gophercises.com/)  
@@ -19,3 +18,6 @@ Check out [gophercises](https://gophercises.com/)
 8. [Deck](deck/)
 9. [Retweet-Contest-Bot](tweetbot/)
 10. [Minimal hackernews clone](quiet_hn/)
+
+## On the side
+1. [Parallel file downloader](https://gist.github.com/rehanvipin/c11bf21a08f7a8d296d8798db4af4bf9)
